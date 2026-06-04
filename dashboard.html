@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Zenova</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --navy: #0D1B3E; --dark-blue: #112D6B; --mid-blue: #1A3A8A;
+  --light-blue: #E8EDF7; --accent-gold: #C9A84C; --accent-gold-light: #F5E9C8;
+  --white: #FFFFFF; --off-white: #F8F9FC; --text-muted: #6B7280;
+  --text-light: #9CA3AF; --border: #E5E8F0; --error: #DC2626; --success: #16A34A;
+  --sidebar-w: 240px;
+}
+html, body { height: 100%; }
+body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: var(--navy); display: flex; }
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w); height: 100vh; background: var(--navy);
+  display: flex; flex-direction: column; flex-shrink: 0;
+  position: fixed; top: 0; left: 0; z-index: 50;
+  transition: transform 0.3s ease; overflow-y: auto;
+}
+.sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 22px 20px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); text-decoration: none; }
+.logo-img { width: 36px; height: 36px; object-fit: contain; filter: brightness(0) invert(1); }
+.logo-text { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: white; }
+.nav-section { padding: 16px 12px 0; flex: 1; }
+.nav-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.3); padding: 0 8px; margin-bottom: 6px; margin-top: 18px; }
+.nav-label:first-child { margin-top: 0; }
+.nav-link {
+  display: flex; align-items: center; gap: 12px; padding: 11px 12px;
+  border-radius: 10px; margin-bottom: 2px; font-size: 14px; font-weight: 500;
+  color: rgba(255,255,255,0.55); transition: all 0.2s; cursor: pointer;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.nav-link:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
+.nav-link.active { background: rgba(201,168,76,0.15); color: var(--accent-gold); font-weight: 600; }
+.nav-icon { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.6; }
+.nav-link:hover .nav-icon, .nav-link.active .nav-icon { opacity: 1; }
+.sidebar-plan { margin: 14px 12px; padding: 14px 16px; border-radius: 12px; background: rgba(201,168,76,0.10); border: 1px solid rgba(201,168,76,0.2); }
+.sidebar-plan-label { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 4px; }
+.sidebar-plan-name { font-size: 15px; font-weight: 700; color: var(--accent-gold); }
+.sidebar-plan-sub { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+.btn-upgrade-side { display: block; margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: var(--accent-gold); color: white; font-size: 12px; font-weight: 600; text-align: center; text-decoration: none; }
+.btn-upgrade-side:hover { background: #b8912e; }
+.sidebar-user { padding: 14px 16px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-gold); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; }
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 13px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-email { font-size: 11px; color: rgba(255,255,255,0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.logout-btn { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.3); padding: 4px; border-radius: 6px; }
+.logout-btn:hover { color: var(--error); }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,27,62,0.5); z-index: 49; }
+.sidebar-overlay.open { display: block; }
+
+/* MAIN */
+.main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+/* TOPBAR */
+.topbar { position: sticky; top: 0; z-index: 40; background: rgba(248,249,252,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 28px; height: 62px; display: flex; align-items: center; justify-content: space-between; }
+.topbar-title { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; color: var(--navy); }
+.topbar-sub { font-size: 12px; color: var(--text-muted); }
+.topbar-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-gold); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; }
+.menu-toggle { display: none; background: none; border: none; cursor: pointer; padding: 6px; color: var(--navy); margin-right: 8px; }
+
+/* PAGES */
+.page { display: none; padding: 24px 28px 100px; }
+.page.active { display: block; animation: fadeUp 0.25s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* WELCOME BANNER */
+.welcome-banner { background: var(--navy); border-radius: 18px; padding: 26px 28px; margin-bottom: 24px; position: relative; overflow: hidden; }
+.welcome-banner::before { content: ''; position: absolute; right: -30px; top: -30px; width: 200px; height: 200px; border-radius: 50%; background: rgba(201,168,76,0.08); pointer-events: none; }
+.wb-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--accent-gold); margin-bottom: 8px; }
+.wb-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 800; color: white; margin-bottom: 6px; }
+.wb-title em { font-style: italic; color: var(--accent-gold); }
+.wb-sub { font-size: 14px; color: rgba(255,255,255,0.5); max-width: 400px; line-height: 1.6; }
+.wb-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.btn-wb { padding: 10px 18px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px; }
+.btn-wb-gold { background: var(--accent-gold); color: white; }
+.btn-wb-gold:hover { background: #b8912e; }
+.btn-wb-outline { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.15); }
+.btn-wb-outline:hover { background: rgba(255,255,255,0.14); }
+
+/* UPGRADE BANNER */
+.upgrade-banner { background: linear-gradient(135deg, var(--dark-blue), var(--mid-blue)); border-radius: 14px; padding: 18px 22px; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid rgba(201,168,76,0.2); }
+.upgrade-banner.hidden { display: none; }
+.ub-text h4 { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: white; margin-bottom: 3px; }
+.ub-text p { font-size: 13px; color: rgba(255,255,255,0.5); }
+.btn-upgrade-banner { flex-shrink: 0; padding: 9px 18px; border-radius: 9px; background: var(--accent-gold); color: white; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+
+/* STATS */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.stat-card { background: var(--white); border-radius: 14px; padding: 18px; border: 1px solid var(--border); }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(13,27,62,0.07); transition: all 0.2s; }
+.stat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; margin-bottom: 10px; }
+.si-blue { background: var(--light-blue); } .si-gold { background: var(--accent-gold-light); } .si-green { background: #DCFCE7; } .si-purple { background: #EDE9FE; }
+.stat-value { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 800; color: var(--navy); line-height: 1; margin-bottom: 3px; }
+.stat-label { font-size: 12px; color: var(--text-muted); }
+
+/* SECTION HEAD */
+.section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.section-head h3 { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--navy); }
+
+/* CONTENT CARDS */
+.cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 24px; }
+.content-card { background: var(--white); border-radius: 14px; padding: 20px; border: 1px solid var(--border); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+.content-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(13,27,62,0.09); }
+.content-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+.cc-chapter::before { background: var(--navy); }
+.cc-audio::before { background: var(--accent-gold); }
+.cc-quiz::before { background: #7C3AED; }
+.cc-cast::before { background: var(--success); }
+.card-emoji { font-size: 28px; margin-bottom: 12px; display: block; }
+.card-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 5px; }
+.card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px; }
+.card-meta { display: flex; align-items: center; justify-content: space-between; }
+.card-tag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 100px; }
+.tag-navy { background: var(--light-blue); color: var(--dark-blue); }
+.tag-gold { background: var(--accent-gold-light); color: #7A5C1E; }
+.tag-purple { background: #EDE9FE; color: #5B21B6; }
+.tag-green { background: #DCFCE7; color: #166534; }
+
+/* STREAK */
+.streak-card { background: var(--white); border-radius: 14px; padding: 20px; border: 1px solid var(--border); margin-bottom: 24px; }
+.streak-days { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.streak-day { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; background: var(--light-blue); color: var(--text-muted); }
+.streak-day.done { background: var(--accent-gold); color: white; }
+.streak-day.today { background: var(--navy); color: white; border: 2px solid var(--accent-gold); }
+
+/* CHAPTER LIST */
+.chapter-list { display: flex; flex-direction: column; gap: 10px; }
+.chapter-item { background: var(--white); border-radius: 12px; padding: 16px 18px; border: 1px solid var(--border); display: flex; align-items: center; gap: 14px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.chapter-item:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(13,27,62,0.07); }
+.ch-num { width: 38px; height: 38px; border-radius: 9px; background: var(--light-blue); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--navy); flex-shrink: 0; }
+.ch-info { flex: 1; }
+.ch-title { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 2px; }
+.ch-sub { font-size: 12px; color: var(--text-muted); }
+.ch-badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 100px; white-space: nowrap; }
+.badge-unlocked { background: #DCFCE7; color: #166534; }
+.badge-locked { background: var(--light-blue); color: var(--text-muted); }
+.badge-play { background: var(--accent-gold-light); color: #7A5C1E; }
+
+/* QUIZ */
+.quiz-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.quiz-card { background: var(--white); border-radius: 14px; padding: 20px; border: 1px solid var(--border); transition: transform 0.2s, box-shadow 0.2s; }
+.quiz-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(13,27,62,0.08); }
+.qc-emoji { font-size: 26px; margin-bottom: 10px; }
+.qc-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 5px; }
+.qc-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5; }
+.qc-footer { display: flex; align-items: center; justify-content: space-between; }
+.diff-badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 100px; }
+.diff-easy { background: #DCFCE7; color: #166534; }
+.diff-medium { background: var(--accent-gold-light); color: #7A5C1E; }
+.diff-hard { background: #FEE2E2; color: #991B1B; }
+.btn-quiz { padding: 6px 13px; border-radius: 8px; background: var(--navy); color: white; font-size: 12px; font-weight: 600; border: none; cursor: pointer; }
+.btn-quiz:hover { background: var(--dark-blue); }
+.btn-upgrade-inline { font-size: 12px; font-weight: 600; color: var(--mid-blue); text-decoration: none; }
+
+/* PROFILE */
+.profile-header { background: var(--white); border-radius: 18px; padding: 26px; border: 1px solid var(--border); margin-bottom: 18px; display: flex; align-items: center; gap: 18px; }
+.profile-avatar-big { width: 68px; height: 68px; border-radius: 50%; background: var(--navy); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: var(--accent-gold); flex-shrink: 0; }
+.profile-info h3 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 800; color: var(--navy); }
+.profile-info p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+.profile-plan-badge { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; background: var(--accent-gold-light); color: #7A5C1E; font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 100px; }
+.profile-section { background: var(--white); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 14px; }
+.profile-section-title { padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.profile-row { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.profile-row:last-child { border-bottom: none; }
+.profile-row-label { font-size: 14px; font-weight: 500; color: var(--navy); display: flex; align-items: center; gap: 10px; }
+.profile-row-value { font-size: 13px; color: var(--text-muted); }
+.pr-icon { width: 30px; height: 30px; border-radius: 8px; background: var(--light-blue); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.btn-logout { width: 100%; padding: 13px; border-radius: 12px; background: #FEF2F2; color: var(--error); border: 1px solid #FCA5A5; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 6px; }
+.btn-logout:hover { background: #FEE2E2; }
+
+/* BOTTOM NAV */
+.bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: var(--white); border-top: 1px solid var(--border); padding: 6px 0 env(safe-area-inset-bottom, 6px); justify-content: space-around; align-items: center; }
+.bn-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 12px; background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 10px; font-weight: 600; transition: color 0.2s; }
+.bn-item svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 2; }
+.bn-item.active { color: var(--navy); }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); box-shadow: 8px 0 32px rgba(13,27,62,0.2); }
+  .main { margin-left: 0; }
+  .menu-toggle { display: flex; }
+  .bottom-nav { display: flex; }
+  .page { padding: 18px 16px 88px; }
+  .topbar { padding: 0 16px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .cards-grid { grid-template-columns: 1fr; }
+  .quiz-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .upgrade-banner { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a href="index.html" class="sidebar-logo">
+    <img src="1.png" class="logo-img" alt="Zenova">
+    <span class="logo-text">Zenova</span>
+  </a>
+  <div class="nav-section">
+    <div class="nav-label">Main</div>
+    <button class="nav-link active" data-page="home" onclick="showPage('home')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </button>
+    <button class="nav-link" data-page="chapters" onclick="showPage('chapters')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      Chapters
+    </button>
+    <button class="nav-link" data-page="quiz" onclick="showPage('quiz')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Quiz (CBT)
+    </button>
+    <button class="nav-link" data-page="audio" onclick="showPage('audio')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+      Audio Summary
+    </button>
+    <button class="nav-link" data-page="cast" onclick="showPage('cast')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      Cast &amp; Characters
+    </button>
+    <div class="nav-label">Account</div>
+    <button class="nav-link" data-page="profile" onclick="showPage('profile')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </button>
+    <button class="nav-link" onclick="doLogout()">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Log Out
+    </button>
+  </div>
+  <div class="sidebar-plan">
+    <div class="sidebar-plan-label">Current Plan</div>
+    <div class="sidebar-plan-name" id="sidebarPlanName">Free</div>
+    <div class="sidebar-plan-sub" id="sidebarPlanSub">1 chapter unlocked</div>
+    <a href="plans.html" class="btn-upgrade-side" id="sidebarUpgradeBtn">⚡ Upgrade Now</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="sidebarAvatar">?</div>
+    <div class="user-info">
+      <div class="user-name" id="sidebarName">Loading...</div>
+      <div class="user-email" id="sidebarEmail">...</div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()" title="Log out">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;">
+      <button class="menu-toggle" onclick="toggleSidebar()">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div>
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+        <div class="topbar-sub" id="topbarSub">Welcome back 👋</div>
+      </div>
+    </div>
+    <div class="topbar-avatar" id="topbarAvatar">?</div>
+  </div>
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div class="upgrade-banner hidden" id="upgradeBanner">
+      <div class="ub-text">
+        <h4>🚀 Unlock Full Access</h4>
+        <p>You're on the Free plan. Upgrade to unlock all chapters, quizzes &amp; audio lessons.</p>
+      </div>
+      <a href="plans.html" class="btn-upgrade-banner">View Plans →</a>
+    </div>
+    <div class="welcome-banner">
+      <div class="wb-tag">📖 Lekki Headmaster — JAMB Prep</div>
+      <div class="wb-title">Keep it up, <em id="welcomeName">Student</em>!</div>
+      <div class="wb-sub">You're on your way to mastering Lekki Headmaster. Every chapter gets you closer to JAMB success.</div>
+      <div class="wb-actions">
+        <button class="btn-wb btn-wb-gold" onclick="showPage('quiz')">⚡ Start a Quiz</button>
+        <button class="btn-wb btn-wb-outline" onclick="showPage('chapters')">📚 Read Chapters</button>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-icon si-blue">📚</div><div class="stat-value" id="statChapters">0</div><div class="stat-label">Chapters Read</div></div>
+      <div class="stat-card"><div class="stat-icon si-gold">🎯</div><div class="stat-value" id="statQuizzes">0</div><div class="stat-label">Quizzes Done</div></div>
+      <div class="stat-card"><div class="stat-icon si-green">🔥</div><div class="stat-value" id="statStreak">0</div><div class="stat-label">Day Streak</div></div>
+      <div class="stat-card"><div class="stat-icon si-purple">⭐</div><div class="stat-value" id="statScore">—</div><div class="stat-label">Best Score</div></div>
+    </div>
+    <div class="section-head"><h3>Study Materials</h3></div>
+    <div class="cards-grid">
+      <div class="content-card cc-chapter" onclick="showPage('chapters')">
+        <span class="card-emoji">📖</span>
+        <div class="card-title">Chapter Summary</div>
+        <div class="card-desc">Read detailed summaries of every chapter in Lekki Headmaster — plot, themes and more.</div>
+        <div class="card-meta"><span class="card-tag tag-navy">12 Chapters</span><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </div>
+      <div class="content-card cc-audio" onclick="showPage('audio')">
+        <span class="card-emoji">🎧</span>
+        <div class="card-title">Audio Summary</div>
+        <div class="card-desc">Listen to narrated audio lessons for each chapter — great for revision on the go.</div>
+        <div class="card-meta"><span class="card-tag tag-gold">Listen Now</span><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </div>
+      <div class="content-card cc-quiz" onclick="showPage('quiz')">
+        <span class="card-emoji">📝</span>
+        <div class="card-title">CBT Quiz</div>
+        <div class="card-desc">Test your knowledge with JAMB-style multiple choice questions on Lekki Headmaster.</div>
+        <div class="card-meta"><span class="card-tag tag-purple">Take Quiz</span><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </div>
+      <div class="content-card cc-cast" onclick="showPage('cast')">
+        <span class="card-emoji">🎭</span>
+        <div class="card-title">Cast &amp; Characters</div>
+        <div class="card-desc">Meet all major and minor characters — their roles, relationships and significance.</div>
+        <div class="card-meta"><span class="card-tag tag-green">Explore</span><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </div>
+    </div>
+    <div class="streak-card">
+      <div class="section-head" style="margin-bottom:0"><h3>🔥 Study Streak</h3><span style="font-size:13px;color:var(--text-muted)">This week</span></div>
+      <div class="streak-days" id="streakDays"></div>
+    </div>
+  </div>
+
+  <!-- CHAPTERS -->
+  <div class="page" id="page-chapters">
+    <div class="section-head"><h3>📖 All Chapters</h3></div>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:18px;">Lekki Headmaster — 12 Chapters</p>
+    <div class="chapter-list" id="chapterList"></div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="page" id="page-quiz">
+    <div class="section-head"><h3>📝 Quiz (CBT)</h3></div>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px;">JAMB-style multiple choice questions on Lekki Headmaster</p>
+    <div class="quiz-grid" id="quizGrid"></div>
+  </div>
+
+  <!-- AUDIO -->
+  <div class="page" id="page-audio">
+    <div class="section-head"><h3>🎧 Audio Summary</h3></div>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:18px;">Listen to narrated chapter summaries — great for revision on the go.</p>
+    <div class="chapter-list" id="audioList"></div>
+  </div>
+
+  <!-- CAST -->
+  <div class="page" id="page-cast">
+    <div class="section-head"><h3>🎭 Cast &amp; Characters</h3></div>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:18px;">Every character in Lekki Headmaster and their role in the story.</p>
+    <div class="chapter-list" id="castList"></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="page" id="page-profile">
+    <div class="profile-header">
+      <div class="profile-avatar-big" id="profileAvatar">?</div>
+      <div class="profile-info">
+        <h3 id="profileName">Loading...</h3>
+        <p id="profileEmail">...</p>
+        <div class="profile-plan-badge" id="profilePlanBadge">🎁 Free Plan</div>
+      </div>
+    </div>
+    <div class="profile-section">
+      <div class="profile-section-title">Account Info</div>
+      <div class="profile-row"><div class="profile-row-label"><div class="pr-icon">👤</div>Full Name</div><div class="profile-row-value" id="prName">—</div></div>
+      <div class="profile-row"><div class="profile-row-label"><div class="pr-icon">📧</div>Email</div><div class="profile-row-value" id="prEmail">—</div></div>
+      <div class="profile-row"><div class="profile-row-label"><div class="pr-icon">🗓️</div>Member Since</div><div class="profile-row-value" id="prJoined">—</div></div>
+    </div>
+    <div class="profile-section">
+      <div class="profile-section-title">Subscription</div>
+      <div class="profile-row"><div class="profile-row-label"><div class="pr-icon">⭐</div>Current Plan</div><div class="profile-row-value" id="prPlan">Free</div></div>
+      <div class="profile-row"><div class="profile-row-label"><div class="pr-icon">📅</div>Status</div><div class="profile-row-value" id="prStatus">Free tier</div></div>
+      <div class="profile-row" style="cursor:pointer" onclick="window.location.href='plans.html'">
+        <div class="profile-row-label"><div class="pr-icon">⚡</div>Upgrade Plan</div>
+        <svg width="14" height="14" fill="none" stroke="var(--text-light)" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Log Out
+    </button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bn-item active" data-page="home" onclick="showPage('home')">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
+  </button>
+  <button class="bn-item" data-page="chapters" onclick="showPage('chapters')">
+    <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>Chapters
+  </button>
+  <button class="bn-item" data-page="quiz" onclick="showPage('quiz')">
+    <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Quiz
+  </button>
+  <button class="bn-item" data-page="profile" onclick="showPage('profile')">
+    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile
+  </button>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBWYdeKlijVJUHUjzcCoPgZDumsgJFMDaw",
+  authDomain: "zenova-4342f.firebaseapp.com",
+  databaseURL: "https://zenova-4342f-default-rtdb.firebaseio.com",
+  projectId: "zenova-4342f",
+  storageBucket: "zenova-4342f.firebasestorage.app",
+  messagingSenderId: "132378238032",
+  appId: "1:132378238032:web:6fe0055d9d5b50b3050555"
+});
+
+const auth = firebase.auth();
+const db   = firebase.database();
+
+// ---- DATA ----
+var currentPlan = 'free';
+
+var PLAN_LIMITS = { free: 1, scholar: 5, master: 12 };
+
+var chapters = [
+  { num:1,  title:'The Arrival',       sub:'Sango arrives in Lekki' },
+  { num:2,  title:'The Headmaster',    sub:'Introduction of the Headmaster' },
+  { num:3,  title:'School Life',       sub:'Daily life at the school' },
+  { num:4,  title:'The Rivalry',       sub:'Tensions begin to rise' },
+  { num:5,  title:'Hidden Truths',     sub:'Secrets are uncovered' },
+  { num:6,  title:'The Confrontation', sub:'A major conflict unfolds' },
+  { num:7,  title:'Betrayal',          sub:'Trust is broken' },
+  { num:8,  title:'Consequences',      sub:'Actions have repercussions' },
+  { num:9,  title:'Redemption',        sub:'Characters seek forgiveness' },
+  { num:10, title:'The Trial',         sub:'Justice is sought' },
+  { num:11, title:'Resolution',        sub:'Conflicts begin to settle' },
+  { num:12, title:'A New Dawn',        sub:'Hope and new beginnings' }
+];
+
+var castMembers = [
+  { name:'The Headmaster', role:'Antagonist / Authority figure',  ch:1 },
+  { name:'Sango',          role:'Protagonist / Student',          ch:1 },
+  { name:'Mama Sango',     role:"Supporting / Sango's mother",    ch:2 },
+  { name:'Mr. Balogun',    role:'Teacher / Mentor figure',        ch:2 },
+  { name:'Tunde',          role:"Sango's best friend",            ch:3 },
+  { name:'Amaka',          role:'Female lead / Rival',            ch:3 },
+  { name:'The Prefect',    role:'School authority',               ch:4 },
+  { name:'Pastor John',    role:'Community leader',               ch:5 },
+  { name:'Chief Okafor',   role:'Corrupt official',               ch:6 },
+  { name:'Nurse Bisi',     role:'School nurse / Informant',       ch:7 },
+  { name:'Mr. Eze',        role:'Deputy headmaster',              ch:8 },
+  { name:'Lola',           role:'Minor character / Witness',      ch:9 }
+];
+
+var quizzes = [
+  { emoji:'📘', title:'Chapter 1 Quiz',    sub:'Test your knowledge on the first chapter of Lekki Headmaster.', diff:'Easy',   cls:'diff-easy'   },
+  { emoji:'📗', title:'Chapter 2-3 Quiz',  sub:'Questions on the rising action and key conflicts in the story.', diff:'Medium', cls:'diff-medium' },
+  { emoji:'📙', title:'Themes & Symbols',  sub:'Identify the major themes and literary symbols used in the novel.', diff:'Medium', cls:'diff-medium' },
+  { emoji:'🏆', title:'Full Novel Quiz',   sub:'JAMB-style comprehensive test covering all 12 chapters.',         diff:'Hard',   cls:'diff-hard'   }
+];
+
+// ---- NAVIGATION ----
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  var target = document.getElementById('page-' + name);
+  if (target) target.classList.add('active');
+
+  document.querySelectorAll('.nav-link[data-page]').forEach(function(l) { l.classList.remove('active'); });
+  var activeLink = document.querySelector('.nav-link[data-page="' + name + '"]');
+  if (activeLink) activeLink.classList.add('active');
+
+  document.querySelectorAll('.bn-item[data-page]').forEach(function(b) { b.classList.remove('active'); });
+  var activeBn = document.querySelector('.bn-item[data-page="' + name + '"]');
+  if (activeBn) activeBn.classList.add('active');
+
+  var titles = { home:'Dashboard', chapters:'Chapters', quiz:'Quiz (CBT)', audio:'Audio Summary', cast:'Cast & Characters', profile:'Profile' };
+  document.getElementById('topbarTitle').textContent = titles[name] || 'Dashboard';
+
+  if (window.innerWidth <= 900) closeSidebar();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+// ---- AUTH ----
+auth.onAuthStateChanged(function(user) {
+  if (!user) { window.location.href = 'login.html'; return; }
+
+  var name     = user.displayName || user.email.split('@')[0];
+  var initials = name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().slice(0,2);
+
+  document.getElementById('welcomeName').textContent  = name.split(' ')[0];
+  document.getElementById('sidebarName').textContent  = name;
+  document.getElementById('sidebarEmail').textContent = user.email;
+  document.getElementById('sidebarAvatar').textContent = initials;
+  document.getElementById('topbarAvatar').textContent  = initials;
+  document.getElementById('profileAvatar').textContent = initials;
+  document.getElementById('profileName').textContent   = name;
+  document.getElementById('profileEmail').textContent  = user.email;
+  document.getElementById('prName').textContent        = name;
+  document.getElementById('prEmail').textContent       = user.email;
+
+  var joined = user.metadata && user.metadata.creationTime
+    ? new Date(user.metadata.creationTime).toLocaleDateString('en-NG', { year:'numeric', month:'long', day:'numeric' })
+    : '—';
+  document.getElementById('prJoined').textContent = joined;
+
+  // Load plan from DB
+  db.ref('users/' + user.uid).once('value').then(function(snap) {
+    var data = snap.val() || {};
+    currentPlan = data.plan || 'free';
+    document.getElementById('statChapters').textContent = data.chaptersRead || 0;
+    document.getElementById('statQuizzes').textContent  = data.quizzesDone  || 0;
+    document.getElementById('statStreak').textContent   = data.streak       || 0;
+    document.getElementById('statScore').textContent    = data.bestScore ? data.bestScore + '%' : '--';
+    applyPlan(currentPlan);
+  }).catch(function() {
+    applyPlan('free');
+  });
+
+  buildStreak();
+});
+
+// ---- PLAN ----
+function applyPlan(plan) {
+  currentPlan = plan;
+  var names = { free:'Free', scholar:'Scholar', master:'Master' };
+  var subs  = { free:'1 chapter unlocked', scholar:'5 chapters unlocked', master:'All chapters unlocked' };
+  var emoji = { free:'🎁', scholar:'👑', master:'🏆' };
+
+  document.getElementById('sidebarPlanName').textContent    = names[plan] || 'Free';
+  document.getElementById('sidebarPlanSub').textContent     = subs[plan]  || '1 chapter unlocked';
+  document.getElementById('prPlan').textContent             = names[plan] || 'Free';
+  document.getElementById('prStatus').textContent           = plan === 'free' ? 'Free tier' : 'Active';
+  document.getElementById('profilePlanBadge').textContent   = (emoji[plan] || '🎁') + ' ' + (names[plan] || 'Free') + ' Plan';
+
+  if (plan !== 'free') {
+    document.getElementById('sidebarUpgradeBtn').style.display = 'none';
+    document.getElementById('upgradeBanner').classList.add('hidden');
+  } else {
+    document.getElementById('sidebarUpgradeBtn').style.display = 'block';
+    document.getElementById('upgradeBanner').classList.remove('hidden');
+  }
+
+  buildChapters(plan);
+  buildQuizzes(plan);
+  buildAudio(plan);
+  buildCast(plan);
+}
+
+// ---- BUILDERS ----
+function buildChapters(plan) {
+  var limit = PLAN_LIMITS[plan] || 1;
+  var html  = '';
+  chapters.forEach(function(ch, i) {
+    var unlocked = i < limit;
+    html += '<div class="chapter-item" style="' + (!unlocked ? 'opacity:0.55;pointer-events:none;' : '') + '">'
+      + '<div class="ch-num">' + ch.num + '</div>'
+      + '<div class="ch-info"><div class="ch-title">' + ch.title + '</div><div class="ch-sub">' + ch.sub + '</div></div>'
+      + '<span class="ch-badge ' + (unlocked ? 'badge-unlocked' : 'badge-locked') + '">' + (unlocked ? '✓ Unlocked' : '🔒 Locked') + '</span>'
+      + '</div>';
+  });
+  document.getElementById('chapterList').innerHTML = html;
+}
+
+function buildQuizzes(plan) {
+  var quizLimit = (plan === 'free') ? 1 : quizzes.length;
+  var html = '';
+  quizzes.forEach(function(q, i) {
+    var unlocked = i < quizLimit;
+    html += '<div class="quiz-card">'
+      + '<div class="qc-emoji">' + q.emoji + '</div>'
+      + '<div class="qc-title">' + (unlocked ? q.title : '🔒 Locked Quiz') + '</div>'
+      + '<div class="qc-sub">'  + (unlocked ? q.sub   : 'Upgrade your plan to unlock this quiz.') + '</div>'
+      + '<div class="qc-footer">'
+      + '<span class="diff-badge ' + q.cls + '">' + q.diff + '</span>'
+      + (unlocked ? '<button class="btn-quiz">Start →</button>' : '<a href="plans.html" class="btn-upgrade-inline">Upgrade →</a>')
+      + '</div></div>';
+  });
+  document.getElementById('quizGrid').innerHTML = html;
+}
+
+function buildAudio(plan) {
+  var limit = PLAN_LIMITS[plan] || 1;
+  var html  = '';
+  chapters.forEach(function(ch, i) {
+    var unlocked = i < limit;
+    html += '<div class="chapter-item" style="' + (!unlocked ? 'opacity:0.55;pointer-events:none;' : '') + '">'
+      + '<div class="ch-num" style="background:' + (unlocked ? 'var(--accent-gold-light);color:#7A5C1E' : 'var(--light-blue);color:var(--text-muted)') + ';font-size:18px;">🎧</div>'
+      + '<div class="ch-info"><div class="ch-title">Audio: ' + ch.title + '</div><div class="ch-sub">' + ch.sub + '</div></div>'
+      + '<span class="ch-badge ' + (unlocked ? 'badge-play' : 'badge-locked') + '">' + (unlocked ? '▶ Play' : '🔒 Locked') + '</span>'
+      + '</div>';
+  });
+  document.getElementById('audioList').innerHTML = html;
+}
+
+function buildCast(plan) {
+  var limit = PLAN_LIMITS[plan] || 1;
+  var html  = '';
+  castMembers.forEach(function(c) {
+    var unlocked = c.ch <= limit;
+    html += '<div class="chapter-item" style="' + (!unlocked ? 'opacity:0.55;' : '') + '">'
+      + '<div class="ch-num" style="background:#DCFCE7;color:#166534;font-size:18px;">🎭</div>'
+      + '<div class="ch-info"><div class="ch-title">' + (unlocked ? c.name : '🔒 Locked') + '</div>'
+      + '<div class="ch-sub">' + (unlocked ? c.role : 'Upgrade to unlock this character') + '</div></div>'
+      + '<span class="ch-badge ' + (unlocked ? 'badge-unlocked' : 'badge-locked') + '">' + (unlocked ? '✓ Available' : '🔒') + '</span>'
+      + '</div>';
+  });
+  document.getElementById('castList').innerHTML = html;
+}
+
+function buildStreak() {
+  var days    = ['M','T','W','T','F','S','S'];
+  var today   = new Date().getDay();
+  var html    = '';
+  days.forEach(function(d, i) {
+    var jsDay = (i === 6) ? 0 : i + 1;
+    var cls   = (jsDay === today) ? 'streak-day today' : 'streak-day';
+    html += '<div class="' + cls + '">' + d + '</div>';
+  });
+  document.getElementById('streakDays').innerHTML = html;
+}
+
+// ---- LOGOUT ----
+function doLogout() {
+  auth.signOut().then(function() { window.location.href = 'login.html'; });
+}
+</script>
+</body>
+</html>
